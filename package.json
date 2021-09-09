@@ -1,6 +1,6 @@
 {
-  "name": "resultify",
-  "version": "1.0.0",
+  "name": "monoflow",
+  "version": "0.0.1",
   "description": "A monadic Result interface for handling errors",
   "main": "dist/index.js",
   "scripts": {
