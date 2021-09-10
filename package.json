@@ -2,7 +2,7 @@
   "name": "monoflow",
   "version": "0.0.1",
   "description": "A monadic Result interface for handling errors",
-  "main": "dist/index.js",
+  "main": "dist/monoflow.js",
   "scripts": {
     "build": "tsc",
     "lint": "eslint . --ext .ts",
