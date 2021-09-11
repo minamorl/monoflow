@@ -1,58 +1,57 @@
 /**
- * A workflow starts with a `TInit` value, which is supplied at the end via
- * `.run`. Each `Workflow` is only a single step, linked together as a linked
- * list, where `TIn` and `TOut` represents the input and output types of the
- * handler function for that step. The handlers supplied to `else` work like the
- * `catch` in `try/catch`: the workflow will skip all intermediate steps until
- * it finds an `else` handler, and throw an exception if it doesn't find one.
+ * A workflow starts with a `Z` value, which is supplied at the end via `.run`.
+ * Each `Workflow` is only a single step, linked together as a linked list,
+ * where `A` and `B` represents the input and output types of the handler
+ * function for that step. The handlers supplied to `else` work like the `catch`
+ * in `try/catch`: the workflow will skip all intermediate steps until it finds
+ * an `else` handler, and throw an exception if it doesn't find one.
  */
-export class Workflow<TInit, TIn, TOut> {
-  static create<TIn, TOut>(ok: (a: TIn) => TOut): Workflow<TIn, TIn, TOut> {
-    return new Workflow<TIn, TIn, TOut>(ok);
+export class Workflow<Z, A, B> {
+  static create<A, B>(ok: (a: A) => B): Workflow<A, A, B> {
+    return new Workflow(ok);
   }
 
   private constructor(
-    private readonly _ok: ((a: TIn) => TOut) | undefined = undefined,
-    private readonly _err: ((error: Error) => TOut) | undefined = undefined,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private readonly _next: Workflow<any, any, any> | undefined = undefined
+    private readonly _ok: ((a: A) => B) | undefined = undefined,
+    private readonly _err: ((error: Error) => B) | undefined = undefined,
+    private readonly _steps: readonly Workflow<any, any, any>[] = []
   ) {}
 
-  then<TOut2>(fn: (item: TOut) => TOut2): Workflow<TInit, TOut, TOut2> {
-    return new Workflow(fn, undefined, this);
+  then<C>(fn: (item: B) => C): Workflow<Z, B, C> {
+    return new Workflow(fn, undefined, [...this._steps, this]);
   }
 
-  else<TOut2>(fn: (error: Error) => TOut2): Workflow<TInit, TOut, TOut2> {
-    return new Workflow(undefined, fn, this);
+  else<C>(fn: (error: Error) => C): Workflow<Z, B, C> {
+    return new Workflow(undefined, fn, [...this._steps, this]);
   }
 
-  run(value: TInit): TOut {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const steps: Workflow<any, any, any>[] = [this];
-    let step = this._next;
-    while (step) {
-      steps.unshift(step);
-      step = step._next;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  run(value: Z): B {
+    const steps = this._steps;
     let ret: any = value;
     let i = 0;
     while (i < steps.length) {
       let step = steps[i];
       try {
+        // Each step is either an `ok` or `err` handler
         if (step._ok) {
           ret = step._ok(ret);
         }
       } catch (err) {
+        // Catch errors from `ok` handlers, and find the nearest `err` handler
         while (step && !step._err) {
           i++;
           step = steps[i];
         }
         if (step && step._err) {
+          // If we have an `err` handler, use that instead
           ret = step._err(err as Error);
         } else {
+          // Else, just throw the error
           throw err;
         }
+        // TODO: Should you be able to chain `.else` repeatedly? I don't think
+        // this will work if you do that. This would probably need to be
+        // recursive.
       }
       i++;
     }

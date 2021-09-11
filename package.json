@@ -1,13 +1,13 @@
 {
   "name": "monoflow",
   "version": "0.0.1",
-  "description": "A monadic Result interface for handling errors",
+  "description": "A monadic interface for handling errors",
   "main": "dist/monoflow.js",
   "scripts": {
     "build": "tsc",
+    "test": "npm run build && node dist/main.js",
     "lint": "eslint . --ext .ts",
-    "lint-and-fix": "eslint . --ext .ts --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint:fix": "eslint . --ext .ts --fix"
   },
   "author": "minamorl",
   "license": "MIT",
