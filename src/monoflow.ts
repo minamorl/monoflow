@@ -6,7 +6,7 @@
  * `catch` in `try/catch`: the workflow will skip all intermediate steps until
  * it finds an `else` handler, and throw an exception if it doesn't find one.
  */
-class Workflow<TInit, TIn, TOut> {
+export class Workflow<TInit, TIn, TOut> {
   static create<TIn, TOut>(ok: (a: TIn) => TOut): Workflow<TIn, TIn, TOut> {
     return new Workflow<TIn, TIn, TOut>(ok);
   }
@@ -59,16 +59,3 @@ class Workflow<TInit, TIn, TOut> {
     return ret;
   }
 }
-
-// Argument type MUST be annotated on the first function
-const value = Workflow.create((x: number) => x * 10)
-  .then((x) => x + 2)
-  .then((x) => `cool ${x}`)
-  // .then((_x) => {
-  //   throw new Error("oops");
-  // })
-  .else((_err) => "NICE")
-  .then((x) => x)
-  .run(3);
-
-console.log(value);
