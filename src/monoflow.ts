@@ -26,7 +26,7 @@ export class Workflow<Z, A, B> {
   }
 
   run(value: Z): B {
-    const steps = this._steps;
+    const steps = [...this._steps, this] as Workflow<any, any, any>[];
     let ret: any = value;
     let i = 0;
     while (i < steps.length) {
