@@ -25,8 +25,8 @@ export class Workflow<Z, A, B> {
     return new Workflow(undefined, fn, [...this._steps, this]);
   }
 
-  combine<T>(workflow: Workflow<Z, B, T>): Workflow<Z, A, T> {
-    return new Workflow(workflow._ok, workflow._err, [...this._steps, this, ...workflow._steps]) as any;
+  combine<T, U>(workflow: Workflow<Z, any, any>): Workflow<Z, T, U> {
+    return new Workflow(workflow._ok, workflow._err, [...this._steps, this, ...workflow._steps]);
   }
 
   run(value: Z): B {
