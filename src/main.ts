@@ -17,3 +17,14 @@ const workflow1 = Workflow.create((x: number) => x + 1).then((x) => x * 2).then(
 const workflow2 = Workflow.create((x: number) => x * 3).then((x) => `${x}`)
 console.log(workflow1.run(1));
 console.log(workflow1.combine(workflow2).run(1));
+
+// error chaining
+
+console.log(Workflow.create(() => { throw new Error(); })
+  .else((_err) => "OK")
+  .then((str) => str)
+  .run(undefined));
+console.log(Workflow.create(() => { throw new Error(); })
+  .else((_err) => { throw new Error("Error1") })
+  .else((_err) => "OK")
+  .run(undefined));

@@ -22,11 +22,15 @@ export class Workflow<Z, A, B> {
   }
 
   else<C>(fn: (error: Error) => C): Workflow<Z, B, C> {
-    return new Workflow(undefined, fn, [...this._steps, this]);
+    return new Workflow(undefined, fn, [...this._steps, this._err ? this.swap() : this]);
   }
 
   combine<C>(workflow: Workflow<Z, B, C>): Workflow<Z, B, C> {
     return new Workflow(workflow._ok, workflow._err, [...this._steps, this, ...workflow._steps]);
+  }
+
+  private swap(): Workflow<Z, A, B> {
+    return new Workflow(this._err as any, undefined, [...this._steps]);   
   }
 
   run(value: Z): B {
