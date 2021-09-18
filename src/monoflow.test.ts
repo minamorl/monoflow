@@ -53,3 +53,15 @@ test("Ignore second .else()", () => {
     });
   expect(workflow.run(1)).toBe("hey!");
 })
+
+
+test("A Workflow handles user-defined errors", () => {
+  const workflow = Workflow.create((_) => {
+    throw { message: "error" }
+  }).else(err => {
+    throw err
+  }).else(err => {
+    return err.message;
+  })
+  expect(workflow.run(undefined)).toBe("error")
+});

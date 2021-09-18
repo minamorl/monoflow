@@ -1,4 +1,3 @@
-
 /**
  * A workflow starts with a `Z` value, which is supplied at the end via `.run`.
  * Each `Workflow` is only a single step, linked together as a linked list,
@@ -19,7 +18,7 @@ export class Workflow<Z, A, B> {
   ) {}
 
   then<C>(fn: (item: B) => C): Workflow<Z, B, C> | Workflow<Z, A, C>{
-    // Make a higher-order function when `this._err` exists.
+    // Make a higher-order function when `this._ok` exists.
     if (this._ok) {
       const binded = this._ok.bind(this);
       return new Workflow((item: A) => fn(binded(item)), undefined, [...this._steps]);
@@ -29,21 +28,28 @@ export class Workflow<Z, A, B> {
 
   else<C>(fn: (error: Error) => C): Workflow<Z, B, unknown>  {
     // Make a higher-order function when `this._err` exists.
+    const sym = Symbol.for("monoflow.hasError");
     if (this._err) {
       const binded = this._err.bind(this);
       const safeFn = (err: Error) => {
         try {
-          return binded(err);
+          return {
+            [sym]: false,
+            _value: binded(err)
+          };
         } catch (err2) {
-          return err2;
+          return {
+            [sym]: true,
+            _value: err2 as Error
+          };
         }
       }
       return new Workflow(undefined, (error: Error) => {
         const result = safeFn(error);
-        if (result instanceof Error) {
-          return fn(result as Error)
+        if (result[sym]) {
+          return fn(result._value as Error)
         }
-        return result;
+        return result._value;
       }, [...this._steps]);
     }
     return new Workflow(undefined, fn, [...this._steps, this]);
