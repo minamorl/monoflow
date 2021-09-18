@@ -27,10 +27,9 @@ export class Workflow<Z, A, B> {
     return new Workflow(fn, undefined, [...this._steps, this]);
   }
 
-  else<C>(fn: (error: Error) => C): Workflow<Z, B, B | C>  {
+  else<C>(fn: (error: Error) => C): Workflow<Z, B, unknown>  {
     // Make a higher-order function when `this._err` exists.
     if (this._err) {
-      console.log("here");
       const binded = this._err.bind(this);
       const safeFn = (err: Error) => {
         try {
@@ -39,7 +38,13 @@ export class Workflow<Z, A, B> {
           return err2;
         }
       }
-      return new Workflow(undefined, (error: Error) => fn(safeFn(error) as Error), [...this._steps]);
+      return new Workflow(undefined, (error: Error) => {
+        const result = safeFn(error);
+        if (result instanceof Error) {
+          return fn(result as Error)
+        }
+        return result;
+      }, [...this._steps]);
     }
     return new Workflow(undefined, fn, [...this._steps, this]);
   }

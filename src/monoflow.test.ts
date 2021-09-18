@@ -40,3 +40,16 @@ test("Complex chain of .else()", () => {
     .then((id) => id);
   expect(workflow.run(1)).toBe("err")
 })
+
+test("Ignore second .else()", () => {
+  const workflow = Workflow.create((_n: number) => {
+    throw new Error("hey");
+  })
+    .else((_err) => {
+      return "hey!";
+    })
+    .else((err) => {
+      return `${err.message}!`;
+    });
+  expect(workflow.run(1)).toBe("hey!");
+})
