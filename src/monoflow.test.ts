@@ -29,3 +29,14 @@ test("A workflow can handle simple error by .else()", () => {
     .else((err) => err.message);
   expect(workflow.run(1)).toBe("err");
 });
+
+test("Complex chain of .else()", () => {
+  const workflow = Workflow
+    .create((_: number) => { throw new Error()})
+    .else((_err) => { throw new Error()})
+    .else((_err) => { throw new Error()})
+    .else((_err) => { throw new Error("err")})
+    .else((err) => err.message)
+    .then((id) => id);
+  expect(workflow.run(1)).toBe("err")
+})
