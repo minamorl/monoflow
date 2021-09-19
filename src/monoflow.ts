@@ -17,11 +17,40 @@ export class Workflow<Z, A, B> {
     private readonly _steps: readonly Workflow<any, any, any>[] = []
   ) {}
 
-  then<C>(fn: (item: B) => C): Workflow<Z, B, C> {
+  then<C>(fn: (item: B) => C): Workflow<Z, B, C> | Workflow<Z, A, C>{
+    // Make a higher-order function when `this._ok` exists.
+    if (this._ok) {
+      const binded = this._ok.bind(this);
+      return new Workflow((item: A) => fn(binded(item)), undefined, [...this._steps]);
+    }
     return new Workflow(fn, undefined, [...this._steps, this]);
   }
 
-  else<C>(fn: (error: Error) => C): Workflow<Z, B, C> {
+  else<C>(fn: (error: Error) => C): Workflow<Z, B, unknown>  {
+    // Make a higher-order function when `this._err` exists.
+    if (this._err) {
+      const binded = this._err.bind(this);
+      const safeFn = (err: Error) => {
+        try {
+          return {
+            _hasError: false,
+            _value: binded(err)
+          };
+        } catch (err2) {
+          return {
+            _hasError: true,
+            _value: err2 as Error
+          };
+        }
+      }
+      return new Workflow(undefined, (error: Error) => {
+        const result = safeFn(error);
+        if (result._hasError) {
+          return fn(result._value as Error)
+        }
+        return result._value;
+      }, [...this._steps]);
+    }
     return new Workflow(undefined, fn, [...this._steps, this]);
   }
 
@@ -29,35 +58,28 @@ export class Workflow<Z, A, B> {
     return new Workflow(workflow._ok, workflow._err, [...this._steps, this, ...workflow._steps]);
   }
 
+  private *steps(): Generator<Workflow<any, any, any>> {
+    const list = [...this._steps, this] as Workflow<any, any, any>[];
+    for (const step of list) {
+      yield step;
+    }
+  }
+
   run(value: Z): B {
-    const steps = [...this._steps, this] as Workflow<any, any, any>[];
     let ret: any = value;
-    let i = 0;
-    while (i < steps.length) {
-      let step = steps[i];
+    const iter = this.steps(); 
+    for (const step of iter) {
       try {
-        // Each step is either an `ok` or `err` handler
         if (step._ok) {
           ret = step._ok(ret);
         }
       } catch (err) {
-        // Catch errors from `ok` handlers, and find the nearest `err` handler
-        while (step && !step._err) {
-          i++;
-          step = steps[i];
+        const nextSteps: Workflow<any, any, any> | undefined = iter.next().value;
+        if (!nextSteps?._err) {
+          throw err as Error;
         }
-        if (step && step._err) {
-          // If we have an `err` handler, use that instead
-          ret = step._err(err as Error);
-        } else {
-          // Else, just throw the error
-          throw err;
-        }
-        // TODO: Should you be able to chain `.else` repeatedly? I don't think
-        // this will work if you do that. This would probably need to be
-        // recursive.
+        ret = nextSteps._err(err as Error);
       }
-      i++;
     }
     return ret;
   }
