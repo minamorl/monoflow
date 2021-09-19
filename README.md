@@ -52,7 +52,7 @@ const workflow = Workflow.create((x: number) => x + 1)
 console.log(workflow.run(1)); // Output: "error!!"
 ```
 
-### Example 5: Combine workflows
+### Example 4: Combine workflows
 
 You can combine multiple workflows like this:
 
