@@ -65,3 +65,13 @@ test("A Workflow handles user-defined errors", () => {
   })
   expect(workflow.run(undefined)).toBe("error")
 });
+
+test("A Workflow should find error handlers when it's combined", () => {
+  const workflow1 = Workflow.create((_) => {
+    throw new Error("error")
+  });
+  const workflow2 = Workflow.create((_) => undefined)
+    .else((err) => err.message);
+  const workflow3 = workflow1.combine(workflow2);
+  expect(workflow3.run(undefined)).toBe("error");
+});
