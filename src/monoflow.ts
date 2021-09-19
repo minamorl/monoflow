@@ -28,25 +28,24 @@ export class Workflow<Z, A, B> {
 
   else<C>(fn: (error: Error) => C): Workflow<Z, B, unknown>  {
     // Make a higher-order function when `this._err` exists.
-    const sym = Symbol.for("monoflow.hasError");
     if (this._err) {
       const binded = this._err.bind(this);
       const safeFn = (err: Error) => {
         try {
           return {
-            [sym]: false,
+            _hasError: false,
             _value: binded(err)
           };
         } catch (err2) {
           return {
-            [sym]: true,
+            _hasError: true,
             _value: err2 as Error
           };
         }
       }
       return new Workflow(undefined, (error: Error) => {
         const result = safeFn(error);
-        if (result[sym]) {
+        if (result._hasError) {
           return fn(result._value as Error)
         }
         return result._value;
