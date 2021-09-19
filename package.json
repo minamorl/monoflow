@@ -1,6 +1,6 @@
 {
   "name": "monoflow",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A monadic interface for handling errors",
   "main": "dist/monoflow.js",
   "types": "dist/monoflow.d.ts",
