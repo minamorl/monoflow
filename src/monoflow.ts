@@ -74,9 +74,12 @@ export class Workflow<Z, A, B> {
           ret = step._ok(ret);
         }
       } catch (err) {
-        const nextSteps: Workflow<any, any, any> | undefined = iter.next().value;
-        if (!nextSteps?._err) {
-          throw err as Error;
+        let nextSteps: Workflow<any, any, any> | undefined;
+        while (!nextSteps?._err) {
+          nextSteps = iter.next().value;
+          if (!nextSteps) {
+            throw err as Error;
+          }
         }
         ret = nextSteps._err(err as Error);
       }
