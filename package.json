@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "A monadic interface for handling errors",
   "main": "dist/monoflow.js",
+  "types": "dist/monoflow.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rimraf ./dist",
