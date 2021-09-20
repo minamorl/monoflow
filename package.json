@@ -16,6 +16,10 @@
   },
   "author": "minamorl",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/minamorl/monoflow.git"
+  },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@typescript-eslint/eslint-plugin": "^4.31.0",
